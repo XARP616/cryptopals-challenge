@@ -4,7 +4,7 @@
 
 namespace challenge5 {
 
-std::string XORCipher(std::string input, std::string key) {
+std::string XORCipher(const std::string& input, const std::string& key) {
   std::string output = input;
   unsigned int characters_left = input.length();
   unsigned int index = 0;
@@ -18,13 +18,12 @@ std::string XORCipher(std::string input, std::string key) {
 
 void RunChallenge() {
   printf("\n----------\nEX5: Repeating-key XOR\n");
-
   std::string key = "ICE";
   std::string input = 
     "Burning 'em, if you ain't quick and nimble\n"
     "I go crazy when I hear a cymbal"
   ;
-
+  
   auto ciphertext = XORCipher(input, key);
   for (unsigned int u = 0; u < input.length(); u++) {
     if (u == 37) printf("\n");

@@ -9,6 +9,7 @@
 #include "challenge5.h"
 #include "challenge6.h"
 
+// EX1
 TEST(Set1, Base64Encoding) {
   std::string input = "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d";
   std::string expected_output = "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t";
@@ -17,6 +18,7 @@ TEST(Set1, Base64Encoding) {
   EXPECT_EQ(out, expected_output) << "Input did not match the expected base64 output";
 }
 
+// EX2
 TEST(Set1, FixedXOR) {
   std::string input1 = "1c0111001f010100061a024b53535009181c";
   std::string input2 = "686974207468652062756c6c277320657965";
@@ -30,17 +32,59 @@ TEST(Set1, FixedXOR) {
   EXPECT_EQ(output, expected);
 }
 
-TEST(Set1, VignereCipher) {
+// EX3
+TEST(Set1, SingleXORCipher) {
   std::string input = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736";
   char expected_key = 'X';
 
   auto scores = challenge3::BruteForceKey(DecodeHexString(input));
-  EXPECT_EQ(scores[0].character, expected_key);
+  EXPECT_EQ(scores[0].character, expected_key) << "Wrong key retrieved";
 }
 
-TEST(Set1, MultipleVignereCipher) {
+// EX4
+TEST(Set1, MultipleSingleXORCipher) {
   std::string expected_output = "Now that the party is jumping\n";
   auto output = challenge4::ExploreFileAndBreak();
 
-  EXPECT_EQ(output, expected_output);
+  EXPECT_EQ(output, expected_output) << "Plaintext mismatches";
+}
+
+// EX5
+TEST(Set1, VigenereCipher) {
+  std::string input = 
+    "Burning 'em, if you ain't quick and nimble\n"
+    "I go crazy when I hear a cymbal"
+  ;
+  std::string key = "ICE";
+  std::string expected_output = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f";
+
+  auto ciphertext = challenge5::XORCipher(input, key);
+  auto output = std::vector<unsigned char>(ciphertext.begin(), ciphertext.end());
+  EXPECT_EQ(EncodeHexString(output), expected_output) << "Wrong resulting ciphertext";
+}
+
+// EX6
+TEST(Set1, HammingDistance) {
+  std::string str1 = "this is a test";
+  std::string str2 = "wokka wokka!!!";
+
+  auto h_distance = challenge6::CalculateHammingDistanceBits(
+    (unsigned char*) str1.data(),
+    (unsigned char*) str2.data(),
+    str1.length()
+  );
+
+  EXPECT_EQ(h_distance, 37) << "Hamming distance mismatch";
+}
+
+TEST(Set1, BreakingVigenere) {
+  std::string input;
+  if (!ParseFile("6.txt", input)) FAIL() << "Failed to open the input file";
+
+  auto ciphertext = challenge1::Base64Decode(input);
+  auto key = challenge6::BreakRepeartingXOR(ciphertext);
+  
+  std::string expected_key = "Terminator X: Bring the noise";
+  std::string tested_key = {key.begin(), key.end()};
+  EXPECT_EQ(tested_key, expected_key) << "Key mismatch";
 }

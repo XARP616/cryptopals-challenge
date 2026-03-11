@@ -51,63 +51,44 @@ unsigned int MostLikelyKeySize(std::vector<unsigned char>& ciphertext) {
     }
   }
 
-  printf(" | Most likely hamming distance: %.2f\n", best_distance);
-  printf(" | Most likely key size: %u\n", best_key_size);
+  //printf(" | Most likely hamming distance: %.2f\n", best_distance);
+  //printf(" | Most likely key size: %u\n", best_key_size);
   return best_key_size;
 }
 
-void BreakRepeartingXOR(std::vector<unsigned char>& ciphertext) {
+std::vector<unsigned char> BreakRepeartingXOR(std::vector<unsigned char>& ciphertext) {
   auto key_size = MostLikelyKeySize(ciphertext);
 
-  // Round robin split
+  // Round robin group split
   std::vector<std::vector<unsigned char>> groups(key_size);
   for (std::size_t i = 0; auto c : ciphertext) {
     groups[i++ % key_size].push_back(c);
   }
 
-  auto possible_keys = std::vector<std::string>(key_size);
   std::vector<unsigned char> key;
   for (std::vector<unsigned char>& group : groups) {
     auto scores = challenge3::BruteForceKey(group);
     key.push_back(scores[0].character);
   }
-  printf(" | Most probable key: "); PrintCharVectorAsString(key);
-
-  auto plaintext = ciphertext;
-  XorBufferKey(plaintext, key);
-  printf("> Plaintext:\n");
-  PrintCharVectorAsString(plaintext);
+  // 
+  return key;
 }
 
 void RunChallenge() {
   printf("\n----------\nEX6: Breaking a reapeating XOR key\n");
-  std::ifstream file("6.txt");
-  if (!file.is_open()) printf("[x] FAILED TO OPEN THE FILE\n");
-
-  std::string input, line;
-  while (std::getline(file, line)) {
-    input += line;
+  std::string input;
+  if (!ParseFile("6.txt", input)) {
+    printf("[x] FAILED TO OPEN THE FILE\n"); 
+    return;
   }
 
-  // TODO: mover a los tests
-  {
-    // 1. Calculate the Hamming Distance
-    std::string str1 = "this is a test";
-    std::string str2 = "wokka wokka!!!";
-    auto h_distance = CalculateHammingDistanceBits(
-      (unsigned char*) str1.data(),
-      (unsigned char*) str2.data(),
-      str1.length()
-    );
+  auto input_data = challenge1::Base64Decode(input);
+  auto key = BreakRepeartingXOR(input_data);
+  XorBufferKey(input_data, key);
 
-    if (h_distance != 37) { printf("Failed to check hamming distance\n"); return;}
-    printf("> Test hamming distance checks out: %u\n", h_distance);
-  }
-
-  auto decoded = challenge1::Base64Decode(input);
-  // printf(" | Input: ");PrintCharVectorAsString(decoded);
-  BreakRepeartingXOR(decoded);
-
+  printf(" | Most probable key: "); PrintCharVectorAsString(key);
+  printf("> Plaintext:\n");
+  PrintCharVectorAsString(input_data);
 }
 
 } // namespace challenge6
