@@ -7,9 +7,12 @@
 
 namespace challenge4 {
 
-void RunChallenge() {
-  printf("\n----------\nEX4: Detect single-character XOR\n");
+std::string ExploreFileAndBreak() {
   std::ifstream file("4.txt");
+  if (!file.is_open()) {
+    printf("[x] FAILED TO OPEN THE FILE\n");
+    return "";
+  }
 
   unsigned int best_score = 0;
   std::vector<unsigned char> best_plaintext;
@@ -23,12 +26,20 @@ void RunChallenge() {
     if (score.score > best_score) {
       best_score = score.score;
       best_plaintext = plaintext;
-      printf(" ! Key 0x%02X with new best score (%u pts): ", score.character, best_score);
-      PrintCharVectorAsString(plaintext);
+      //printf(" ! Key 0x%02X with new best score (%u pts): ", score.character, best_score);
+      //PrintCharVectorAsString(plaintext);
     }
   }
-  printf("> Best found plaintext: ");
-  PrintCharVectorAsString(best_plaintext);
+
+  return std::string(best_plaintext.begin(), best_plaintext.end());
+}
+
+void RunChallenge() {
+  printf("\n----------\nEX4: Detect single-character XOR\n");
+  
+  auto best_plaintext = ExploreFileAndBreak();
+  printf("> Best found plaintext: %s\n", best_plaintext.c_str());
+  //PrintCharVectorAsString(best_plaintext);
 }
 
 } // namespace challenge4

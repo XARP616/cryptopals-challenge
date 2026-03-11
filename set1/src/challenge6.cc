@@ -82,6 +82,8 @@ void BreakRepeartingXOR(std::vector<unsigned char>& ciphertext) {
 void RunChallenge() {
   printf("\n----------\nEX6: Breaking a reapeating XOR key\n");
   std::ifstream file("6.txt");
+  if (!file.is_open()) printf("[x] FAILED TO OPEN THE FILE\n");
+
   std::string input, line;
   while (std::getline(file, line)) {
     input += line;
