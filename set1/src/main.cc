@@ -5,6 +5,7 @@
 #include "challenge5.h"
 #include "challenge6.h"
 #include "challenge7.h"
+#include "challenge8.h"
 
 int main() {
   challenge1::RunChallenge();
@@ -14,6 +15,7 @@ int main() {
   challenge5::RunChallenge();
   challenge6::RunChallenge();
   challenge7::RunChallenge();
+  challenge8::RunChallenge();
   
   return 0;
 }

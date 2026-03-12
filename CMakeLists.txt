@@ -12,7 +12,9 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
+# https://cmake.org/cmake/help/latest/module/FindOpenSSL.html
 find_package(OpenSSL REQUIRED)
+message(STATUS "OpenSSL version: ${OPENSSL_VERSION}")
 
 add_library(common INTERFACE)
 target_include_directories(common INTERFACE ${PROJECT_SOURCE_DIR}/common/include)
