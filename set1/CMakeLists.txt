@@ -14,10 +14,9 @@ add_executable(set1
 target_link_libraries(set1 PRIVATE 
     common 
     set1_includes
-    OpenSSL::SSL
-    OpenSSL::Crypto
+    ${OPENSSL_LIBRARIES}
 )
 
 configure_file(${SET1_DATA_DIR}/4.txt ${BUILD_BASE_DIR}/4.txt COPYONLY)
 configure_file(${SET1_DATA_DIR}/6.txt ${BUILD_BASE_DIR}/6.txt COPYONLY)
-configure_file(${SET1_DATA_DIR}/6.txt ${BUILD_BASE_DIR}/7.txt COPYONLY)
+configure_file(${SET1_DATA_DIR}/7.txt ${BUILD_BASE_DIR}/7.txt COPYONLY)

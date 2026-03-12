@@ -13,7 +13,7 @@ int main() {
   challenge4::RunChallenge();
   challenge5::RunChallenge();
   challenge6::RunChallenge();
-  //challenge7::RunChallenge();
+  challenge7::RunChallenge();
   
   return 0;
 }

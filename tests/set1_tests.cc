@@ -8,6 +8,7 @@
 #include "challenge4.h"
 #include "challenge5.h"
 #include "challenge6.h"
+#include "challenge7.h"
 
 // EX1
 TEST(Set1, Base64Encoding) {
@@ -77,6 +78,7 @@ TEST(Set1, HammingDistance) {
   EXPECT_EQ(h_distance, 37) << "Hamming distance mismatch";
 }
 
+// EX6
 TEST(Set1, BreakingVigenere) {
   std::string input;
   if (!ParseFile("6.txt", input)) FAIL() << "Failed to open the input file";
@@ -87,4 +89,20 @@ TEST(Set1, BreakingVigenere) {
   std::string expected_key = "Terminator X: Bring the noise";
   std::string tested_key = {key.begin(), key.end()};
   EXPECT_EQ(tested_key, expected_key) << "Key mismatch";
+}
+
+// EX7
+TEST(Set1, AesEcb) {
+  std::string input;
+  std::string key = "YELLOW SUBMARINE";
+  if (!ParseFile("7.txt", input)) FAIL() << "Failed to open the input file";
+
+  auto decoded = challenge1::Base64Decode(input);
+  auto plaintext = challenge7::DecryptAesEcb(decoded, {key.begin(), key.end()});
+  auto ciphertext = challenge7::EncryptAesEcb(plaintext, {key.begin(), key.end()});
+
+  std::string expected_plaintext = "I'm back and I'm ringin' the bell";
+  auto plaintext_extract = std::string(plaintext.begin(), plaintext.begin() + expected_plaintext.length());
+  EXPECT_EQ(plaintext_extract, expected_plaintext) << "The plaintext is not correct";
+  EXPECT_EQ(ciphertext, decoded) << "The ciphertext does not match the original";
 }

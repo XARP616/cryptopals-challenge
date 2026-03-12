@@ -9,7 +9,7 @@ inline void PrintHexBuffer(const std::vector<unsigned char>& input) {
   for (unsigned int u = 0; u < input.size(); u++) {
     if (u % 16 == 0) printf("\n");
     printf("%02X ", input[u]);
-  }
+  } printf("\n");
 }
 
 inline void PrintCharVectorAsString(const std::vector<unsigned char>& input) {
