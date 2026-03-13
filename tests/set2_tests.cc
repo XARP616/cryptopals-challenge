@@ -34,7 +34,7 @@ TEST(Set2, PKCS7Padding) {
   EXPECT_EQ(input.size(), input.size()) << "Size mismatch";
 }
 
-// EX9
+// EX10
 TEST(Set2, AESCBCMode) {
   std::string key = "YELLOW SUBMARINE";
   std::vector<unsigned char> iv(16, '\03');
