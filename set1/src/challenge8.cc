@@ -8,17 +8,17 @@
 
 namespace challenge8 {
 
-const std::size_t kBlockSize = 16;
+const size_t kBlockSize = 16;
 
 unsigned int ScoreString(const std::vector<unsigned char>& input) {
   std::span<const std::uint8_t> data(input); // create a view from the data
 
   unsigned int count = 0;
-  for (std::size_t i = 0; i < input.size(); i += kBlockSize)  {
+  for (size_t i = 0; i < input.size(); i += kBlockSize)  {
     auto block1 = data.subspan(i, kBlockSize);
 
     // `j = i + kBlockSize` to avoid repeated comparisons
-    for (std::size_t j = i + kBlockSize; j < input.size(); j += kBlockSize) { 
+    for (size_t j = i + kBlockSize; j < input.size(); j += kBlockSize) { 
       auto block2 = data.subspan(j, kBlockSize);
       if (memcmp(block1.data(), block2.data(), kBlockSize) == 0) count++;
     }

@@ -28,7 +28,12 @@ set(SET1_DATA_DIR "${SET1_BASE_DIR}/data")
 add_subdirectory(set1)
 
 # SET 2
-#add_subdirectory(set2)
+add_library(set2_includes INTERFACE)
+target_include_directories(set2_includes INTERFACE ${PROJECT_SOURCE_DIR}/set2/include)
+set(SET2_BASE_DIR "${CMAKE_SOURCE_DIR}/set2")
+set(SET2_SRC_DIR "${SET2_BASE_DIR}/src")
+set(SET2_DATA_DIR "${SET2_BASE_DIR}/data")
+add_subdirectory(set2)
 
 # SET 3
 #add_subdirectory(set3)

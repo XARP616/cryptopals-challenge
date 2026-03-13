@@ -8,6 +8,32 @@
 
 namespace challenge7 {
 
+bool EncryptAesEcbBlock(const unsigned char* plaintext, unsigned char* ciphertext, const unsigned char* key, size_t size) {
+  int processed_bytes;
+  EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+  if (!ctx) {
+    printf("[x] Failed to create EVP_CIPHER_CTX\n");
+    return false;
+  }
+
+  if (EVP_EncryptInit_ex(ctx, EVP_aes_128_ecb(), nullptr, key, nullptr) != 1) {
+    printf("Failed to initialize encryption\n");
+    EVP_CIPHER_CTX_free(ctx);
+    return false;
+  }
+
+  EVP_CIPHER_CTX_set_padding(ctx, 0);
+
+  if (EVP_EncryptUpdate(ctx, ciphertext, &processed_bytes, plaintext, size) != 1) {
+    printf("[x] Failed to encrypt data\n");
+    EVP_CIPHER_CTX_free(ctx);
+    return false;
+  }
+
+  EVP_CIPHER_CTX_free(ctx);
+  return true;
+}
+
 // https://docs.openssl.org/3.0/man3/EVP_aes_128_gcm/#name
 // https://docs.openssl.org/3.0/man3/EVP_EncryptInit/#description
 // https://stackoverflow.com/questions/5665698/evp-decryptfinal-ex-error-on-openssl
@@ -49,6 +75,7 @@ std::vector<unsigned char> EncryptAesEcb(const std::vector<unsigned char>& plain
 
   ciphertext.resize(new_ciphertext_len);
 
+  EVP_CIPHER_CTX_free(ctx);
   return ciphertext;
 }
 

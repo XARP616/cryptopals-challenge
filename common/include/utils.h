@@ -6,10 +6,41 @@
 #pragma once
 
 inline void PrintHexBuffer(const std::vector<unsigned char>& input) {
-  for (unsigned int u = 0; u < input.size(); u++) {
-    if (u % 16 == 0) printf("\n");
+  std::string formatted_line;
+
+  printf("\n 0           4            8           C            _ ASCII ________\n");
+
+  unsigned int u;
+  for (u = 0; u < input.size(); u++) {
+    if (u > 0) {
+      if (u % 16 == 0) {
+        printf("  %s\n", formatted_line.c_str());
+        formatted_line.clear();
+      } else if (u % 8 == 0) printf(" ");
+    }
+
+    unsigned char character;
+    if (input[u] < 0x20 || input[u] > 0x7E) character = '.';
+    else character = input[u];
+    
     printf("%02X ", input[u]);
-  } printf("\n");
+    formatted_line += std::format("{}", static_cast<char>(character));
+
+  } 
+  
+  if (u % 16 > 0) {
+    // add missing spaces
+    std::string final_line;
+    int already = (u % 16) * 3;
+    for (unsigned int i = already; i < 50; i++) {
+      final_line += " ";
+    }
+
+    final_line += formatted_line;
+    printf(" %s\n", final_line.c_str());
+  } else if (u % 16 == 0) printf("  %s\n", formatted_line.c_str());
+
+  printf("\n");
 }
 
 inline void PrintCharVectorAsString(const std::vector<unsigned char>& input) {
@@ -70,7 +101,12 @@ inline void XorCharVec(std::vector<unsigned char>& input, unsigned int xor_value
 
 inline void XorBufferKey(std::vector<unsigned char>& input, const std::vector<unsigned char>& key) {
   if (key.size() == 0) return;
-  for (std::size_t i = 0; auto& character : input) {
+  for (size_t i = 0; auto& character : input) {
     character ^= key[i++ % key.size()];
   }
+}
+
+// Takes two buffers and XORs them. The result is written on in1
+inline void XorBuffer(unsigned char* in1, const unsigned char* in2, size_t size) {
+  for (size_t i = 0; i < size; i++) in1[i] ^= in2[i];
 }

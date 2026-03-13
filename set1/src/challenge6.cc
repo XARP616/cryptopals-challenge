@@ -9,11 +9,11 @@
 namespace challenge6 {
 
 // Edit distance = hamming distance
-unsigned int CalculateHammingDistanceBits(unsigned char* buffer1, unsigned char* buffer2, std::size_t input_size) {
+unsigned int CalculateHammingDistanceBits(unsigned char* buffer1, unsigned char* buffer2, size_t input_size) {
   // 1. XOR both bytes (bit is set if the inputs are not equal)
   // 2. Count how many set bits result (x86 single instruction op)
   unsigned int distance = 0;
-  for (std::size_t i = 0; i < input_size; i++) {
+  for (size_t i = 0; i < input_size; i++) {
     unsigned char character = buffer1[i] ^ buffer2[i];
     distance += std::popcount(character);
   }
@@ -61,7 +61,7 @@ std::vector<unsigned char> BreakRepeartingXOR(std::vector<unsigned char>& cipher
 
   // Round robin group split
   std::vector<std::vector<unsigned char>> groups(key_size);
-  for (std::size_t i = 0; auto c : ciphertext) {
+  for (size_t i = 0; auto c : ciphertext) {
     groups[i++ % key_size].push_back(c);
   }
 
