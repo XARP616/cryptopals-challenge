@@ -38,12 +38,14 @@ TEST(Set2, PKCS7Padding) {
 TEST(Set2, AESCBCMode) {
   std::string key = "YELLOW SUBMARINE";
   std::vector<unsigned char> iv(16, '\03');
-
   std::string text = "This is just a test message";
+  
   auto ciphertext = challenge10::CBCEncrypt({text.begin(), text.end()}, iv, {key.begin(), key.end()});
   auto decrypted = challenge10::CBCDecrypt(ciphertext, iv, {key.begin(), key.end()});
   std::string decrypted_str = {decrypted.begin(), decrypted.end()};
   
   EXPECT_EQ(text, decrypted_str);
   EXPECT_EQ(text.length(), decrypted_str.length()); // Going to fail until padding gets removed
+
+  // TODO: test for a single block? (with the padding may not make sense)
 }

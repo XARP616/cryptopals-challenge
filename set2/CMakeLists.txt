@@ -5,6 +5,7 @@ add_executable(set2
   ${SET1_SRC_DIR}/challenge7.cc
   ${SET2_SRC_DIR}/challenge9.cc
   ${SET2_SRC_DIR}/challenge10.cc
+  ${SET2_SRC_DIR}/challenge11.cc
   ${SET2_SRC_DIR}/main.cc
 )
 target_link_libraries(set2 PRIVATE
