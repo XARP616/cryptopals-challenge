@@ -34,6 +34,33 @@ bool EncryptAesEcbBlock(const unsigned char* plaintext, unsigned char* ciphertex
   return true;
 }
 
+bool DecryptAesEcbBlock(const unsigned char* ciphertext, unsigned char* plaintext, const unsigned char* key, size_t size) {
+  int processed_bytes;
+
+  EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+  if (!ctx) {
+    printf("[x] Failed to create EVP_CIPHER_CTX\n");
+    return false;
+  }
+
+  if (EVP_DecryptInit_ex(ctx, EVP_aes_128_ecb(), nullptr, key, nullptr) != 1) {
+    printf("[x] Failed to initialize decryption\n");
+    EVP_CIPHER_CTX_free(ctx);
+    return false;
+  }
+
+  EVP_CIPHER_CTX_set_padding(ctx, 0);
+
+  if (EVP_DecryptUpdate(ctx, plaintext, &processed_bytes, ciphertext, size) != 1) {
+    printf("[x] Failed to decrypt data\n");
+    EVP_CIPHER_CTX_free(ctx);
+    return false;
+  }
+
+  EVP_CIPHER_CTX_free(ctx);
+  return true;
+}
+
 // https://docs.openssl.org/3.0/man3/EVP_aes_128_gcm/#name
 // https://docs.openssl.org/3.0/man3/EVP_EncryptInit/#description
 // https://stackoverflow.com/questions/5665698/evp-decryptfinal-ex-error-on-openssl

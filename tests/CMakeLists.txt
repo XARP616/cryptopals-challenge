@@ -14,7 +14,10 @@ add_executable(
 add_executable(
   set2_tests
   set2_tests.cc
+  ${SET1_SRC_DIR}/challenge1.cc
+  ${SET1_SRC_DIR}/challenge7.cc
   ${SET2_SRC_DIR}/challenge9.cc
+  ${SET2_SRC_DIR}/challenge10.cc
 )
 
 target_link_libraries(
@@ -28,8 +31,10 @@ target_link_libraries(
 target_link_libraries(
   set2_tests
   common
+  set1_includes
   set2_includes
   GTest::gtest_main
+  OpenSSL::Crypto
 )
 
 configure_file(${SET1_DATA_DIR}/4.txt 4.txt COPYONLY)

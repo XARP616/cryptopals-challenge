@@ -10,7 +10,7 @@ const unsigned int kBlockSizeBytes = 16;
 
 // The CBC mode takes the output of a block and XORs it with the
 // next block. The first block of the chain is XORed with the IV.
-std::vector<unsigned char> CBCEncryption(
+std::vector<unsigned char> CBCEncrypt(
   const std::vector<unsigned char>& plaintext, 
   const std::vector<unsigned char>& iv, 
   const std::vector<unsigned char>& key) {
@@ -42,13 +42,23 @@ std::vector<unsigned char> CBCEncryption(
   return cbc_ciphertext;
 }
 
-std::vector<unsigned char> CBCDecryption(
+std::vector<unsigned char> CBCDecrypt(
   const std::vector<unsigned char>& ciphertext, 
   const std::vector<unsigned char>& iv, 
   const std::vector<unsigned char>& key) {
-  auto cbc_plaintext = ciphertext; // copy the plaintext over to the ciphertext
+  auto cbc_plaintext = ciphertext;
   
-  // TODO
+  for (int i = cbc_plaintext.size() - kBlockSizeBytes; i >= 0; i -= kBlockSizeBytes) {
+    auto current_block = cbc_plaintext.data() + i;
+    challenge7::DecryptAesEcbBlock(current_block, current_block, key.data(), kBlockSizeBytes);
+
+    auto prev_block = current_block - kBlockSizeBytes;
+    if (i >= kBlockSizeBytes) XorBuffer(current_block, prev_block, kBlockSizeBytes);
+  }
+
+  XorBuffer(cbc_plaintext.data(), iv.data(), kBlockSizeBytes);
+
+  // TODO: remove the padding
 
   return cbc_plaintext;
 }
@@ -62,11 +72,9 @@ void RunChallenge() {
   if (!ParseFile("10.txt", plaintext_str)) return;
   
   std::vector<unsigned char> ciphertext = challenge1::Base64Decode(plaintext_str);
-
-  std::string plaintext = "This is just a test message";
-  auto c_txt2 = CBCEncryption({plaintext.begin(), plaintext.end()}, iv, {key.begin(), key.end()});
-  printf("RESULTING BUFFER:");
-  PrintHexBuffer(c_txt2);
+  auto plaintext = CBCDecrypt(ciphertext, iv, {key.begin(), key.end()});
+  printf("Decrypted file:");
+  PrintHexBuffer(plaintext);
 }
 
 }
