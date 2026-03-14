@@ -73,8 +73,7 @@ void RunChallenge() {
       printf("ECB!\n");
     } else printf("CBC!\n");
     printf("---\n");
-  }
-  
+  } 
 }
 
 } // namespace challenge11
