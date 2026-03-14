@@ -20,21 +20,22 @@ std::vector<unsigned char> RandomAESKey() {
   return key;
 }
 
-void GuessEncryptionMode(std::vector<unsigned char> input) {
+// Returns true if encrypted with ECB, false if encrypted with CBC
+bool IsCiphertextEcb(const std::vector<unsigned char>& input) {
   std::set<std::vector<unsigned char>> blocks;
   for (auto block_start = input.begin(); block_start < input.end(); block_start += kBlockSizeBytes) {
     auto block_end = block_start + kBlockSizeBytes;
     std::vector<unsigned char> current_block(block_start, block_end);
 
-    if (blocks.contains(current_block)) PrintHexBuffer(current_block, "Probably an ECB block:");
-    else {
-      PrintHexBuffer(current_block, "Probably a CBC block:");
-      blocks.insert(current_block);
-    }
+    if (blocks.contains(current_block)) return true;
+    else blocks.insert(current_block);
   }
+
+  return false;
 }
 
-void EncryptionOracle(std::vector<unsigned char> plaintext) {
+// Inserts 5 to 10 random bytes at the beginning and end of the buffer
+void AddRandomBytes(std::vector<unsigned char>& plaintext) {
   std::vector<unsigned char> padding_before;
   std::vector<unsigned char> padding_after;
     
@@ -42,29 +43,38 @@ void EncryptionOracle(std::vector<unsigned char> plaintext) {
   for (unsigned int i = 0; i < rand() % 6 + 5; i++) padding_after.push_back(rand());
   plaintext.insert(plaintext.begin(), padding_before.begin(), padding_before.end());
   plaintext.insert(plaintext.end(), padding_after.begin(), padding_after.end());
+}
+
+std::vector<unsigned char> EncryptionOracle(std::vector<unsigned char> plaintext) {
+  AddRandomBytes(plaintext);
+  auto key = RandomAESKey();
 
   std::vector<unsigned char> ciphertext;
-  auto key = RandomAESKey();
-  for (auto current_block = plaintext.begin(); current_block < plaintext.end(); current_block += kBlockSizeBytes) {
-    auto block_end = current_block + kBlockSizeBytes;
-    std::vector<unsigned char> block;
-    if (rand() % 2 == 0) {
-      auto iv = RandomAESKey();
-      block = challenge10::CBCEncrypt({current_block, block_end}, iv, key, false);
-    } else {
-      block = challenge7::EncryptAesEcb({current_block, block_end}, key, false);
-    }
-    ciphertext.insert(ciphertext.end(), block.begin(), block.end());
+  if (rand() % 2 == 0) {
+    printf("Oracle says:   CBC!\n");
+    auto iv = RandomAESKey();
+    ciphertext = challenge10::CBCEncrypt(plaintext, iv, key);
+  } else {
+    printf("Oracle says:   ECB!\n");
+    ciphertext = challenge7::EncryptAesEcb(plaintext, key);
   }
 
-  GuessEncryptionMode(ciphertext);
+  return ciphertext;
 }
 
 void RunChallenge() {
   printf("\n----------\nEX11: ECB/CBC Oracle\n");
 
-  auto input = std::vector<unsigned char>(160, 'A');
-  EncryptionOracle(input);
+  for (int i = 0; i < 10; i++) {
+    auto input = std::vector<unsigned char>(160, 'A');
+    auto ciphertext = EncryptionOracle(input);
+    printf("Detector says: ");
+    if (IsCiphertextEcb(ciphertext)) {
+      printf("ECB!\n");
+    } else printf("CBC!\n");
+    printf("---\n");
+  }
+  
 }
 
 } // namespace challenge11
