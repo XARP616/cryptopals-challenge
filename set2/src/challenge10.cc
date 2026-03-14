@@ -13,11 +13,12 @@ const unsigned int kBlockSizeBytes = 16;
 std::vector<unsigned char> CBCEncrypt(
   const std::vector<unsigned char>& plaintext, 
   const std::vector<unsigned char>& iv, 
-  const std::vector<unsigned char>& key) {
+  const std::vector<unsigned char>& key,
+  bool padding) {
   auto cbc_ciphertext = plaintext; // copy the plaintext over to the ciphertext
   
   // 1. Pad the buffer
-  challenge9::PKCS7Padding(cbc_ciphertext, kBlockSizeBytes);
+  if (padding) challenge9::PKCS7Padding(cbc_ciphertext, kBlockSizeBytes);
 
   // 2. XOR the first block with the IV
   XorBuffer(cbc_ciphertext.data(), iv.data(), kBlockSizeBytes);

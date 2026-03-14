@@ -66,7 +66,7 @@ bool DecryptAesEcbBlock(const unsigned char* ciphertext, unsigned char* plaintex
 // https://stackoverflow.com/questions/5665698/evp-decryptfinal-ex-error-on-openssl
 // https://github.com/mohabouz/CPP-AES-OpenSSL-Encrypt/blob/master/utils.cpp
 // https://friendlyuser.github.io/posts/tech/cpp/Using_OpenSSL_in_C++_A_Comprehensive_Guide/
-std::vector<unsigned char> EncryptAesEcb(const std::vector<unsigned char>& plaintext, const std::vector<unsigned char> key) {
+std::vector<unsigned char> EncryptAesEcb(const std::vector<unsigned char>& plaintext, const std::vector<unsigned char> key, bool padding_enabled) {
   std::vector<unsigned char> ciphertext(plaintext.size() + 16); // maximum possible padding (ECB: input length has to be multiple of 16)
   int plaintext_len = plaintext.size();
   int new_ciphertext_len, processed_bytes;
@@ -83,7 +83,7 @@ std::vector<unsigned char> EncryptAesEcb(const std::vector<unsigned char>& plain
     return {};
   }
 
-  //EVP_CIPHER_CTX_set_padding(ctx, 0);
+  if (!padding_enabled) EVP_CIPHER_CTX_set_padding(ctx, 0);
 
   if (EVP_EncryptUpdate(ctx, ciphertext.data(), &processed_bytes, plaintext.data(), plaintext_len) != 1) {
     printf("[x] Failed to encrypt data\n");

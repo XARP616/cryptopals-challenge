@@ -5,9 +5,10 @@
 
 #pragma once
 
-inline void PrintHexBuffer(const std::vector<unsigned char>& input) {
+inline void PrintHexBuffer(const std::vector<unsigned char>& input, std::string description = "") {
   std::string formatted_line;
 
+  if (description.length() != 0) printf("%s", description.c_str());
   printf("\n 0           4            8           C            _ ASCII ________\n");
 
   unsigned int u;

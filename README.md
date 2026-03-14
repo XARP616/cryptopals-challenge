@@ -2,8 +2,8 @@
 Mi solución para los retos de [CryptoPals](https://cryptopals.com/)
 
 ### Entorno
-* Linux (WSL Ubuntu)
-* CMake, G++
+* Linux (WSL Ubuntu 24)
+* CMake, G++ (v13)
 * GTest
 * OpenSSL (libssl-dev necesario)
 
