@@ -13,8 +13,6 @@ std::vector<unsigned char> TheNewEncryptionOracle(std::vector<unsigned char> pla
   std::string prepend = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK";
   auto decoded = challenge1::Base64Decode(prepend);
   plaintext.insert(plaintext.end(), decoded.begin(), decoded.end());
-
-  PrintHexBuffer(plaintext, "PLAINTEXT");
   return challenge7::EncryptAesEcb(plaintext, key);
 }
 
@@ -50,6 +48,58 @@ bool IsTheNewOracleUsingEcb() {
   return challenge11::IsCiphertextEcb(input);
 }
 
+// Gets the ciphertext block where the input is padding and the last byte will be next unkown byte of the secret
+std::vector<unsigned char> GetTargetCiphertextBlock(const std::vector<unsigned char>& test_input, unsigned int max_output_len) {
+  auto target_output = TheNewEncryptionOracle(test_input);
+  if (target_output.size() > max_output_len) target_output.resize(max_output_len);
+  return target_output;
+}
+
+void BreakECB(unsigned int block_size) {
+  printf("\n============= BREAKING ECB ================\n");
+  std::vector<unsigned char> reconstructed_plaintext;
+
+  unsigned int block_count = 1;
+  bool remaining_characters = true;
+  while (remaining_characters) {
+    unsigned int dummy_bytes = block_size * block_count - reconstructed_plaintext.size() - 1;
+    
+    auto crafted_input = std::vector<unsigned char>(dummy_bytes, 'A');
+    auto target_output = GetTargetCiphertextBlock(crafted_input, block_size * block_count);
+
+    crafted_input.insert(crafted_input.end(), reconstructed_plaintext.begin(), reconstructed_plaintext.end());
+    crafted_input.push_back('?'); // guess token (this character will be replaced)
+
+    // Brute force
+    unsigned int character;
+    for (character = 0x00; character <= 0xFF; character++) {
+      unsigned char c = static_cast<unsigned char>(character);
+      //printf("[%c = 0x%02X]\n", c, c);
+      crafted_input.at(crafted_input.size() - 1) = c; // replace the last character
+      auto ciphertext = TheNewEncryptionOracle(crafted_input);
+
+      // discard all but the first bytes
+      if (ciphertext.size() > block_count * block_size) ciphertext.resize(block_count * block_size);
+
+      // if we find a ciphertext that matches our input
+      if (ciphertext == target_output) {
+        reconstructed_plaintext.push_back(c);
+        break;
+      }
+    }
+
+    if (character > 0xFF) {
+      remaining_characters = false;
+      printf("[!] Failed to find an ASCII character. Message end\n");
+    }
+
+    if (dummy_bytes == 0) block_count++;
+    //PrintHexBuffer(reconstructed_plaintext, "PLAINTEXT SO FAR:");
+  }
+
+  PrintHexBuffer(reconstructed_plaintext, "FINAL PLAINTEXT");
+}
+
 void RunChallenge() {
   printf("\n----------\nEX12: Byte-at-a-time ECB decryption (Simple)\n");
   key = challenge11::RandomAESKey();
@@ -60,14 +110,9 @@ void RunChallenge() {
   if (IsTheNewOracleUsingEcb()) printf("The New Oracle is using ECB\n");
   else printf("The New Oracle is not using ECB\n");
 
-  printf("\n\n\nChecking for PADDING ATTACK\n");
-  auto input = std::vector<unsigned char>(block_size, 'A');
-  for (size_t i = 0; i < 10; i++) {
-    PrintHexBuffer(input, "CRAFTED INPUT");
-    auto ciphertext = TheNewEncryptionOracle(input);
-    PrintHexBuffer(ciphertext, "CIPHERTEXT");
-    input.at(input.size() - 1)++; // change the last letter for the next one
-  }
+  BreakECB(block_size);
+  
+  
 }
 
 } // namespace challenge12
