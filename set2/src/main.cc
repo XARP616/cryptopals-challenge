@@ -7,6 +7,7 @@
 #include "challenge13.h"
 #include "challenge14.h"
 #include "challenge15.h"
+#include "challenge16.h"
 
 int main() {
   srand(time(nullptr));
@@ -15,7 +16,8 @@ int main() {
   //challenge11::RunChallenge();
   //challenge12::RunChallenge();
   //challenge13::RunChallenge();
-  challenge14::RunChallenge();
+  //challenge14::RunChallenge();
   //challenge15::RunChallenge();
+  challenge16::RunChallenge();
   return 0;
 }
