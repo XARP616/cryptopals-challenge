@@ -88,6 +88,66 @@ size_t GuessRandomTextSize() {
   return min_size; // the random text is perfectly aligned
 }
 
+void RemoveFirstBytes(std::vector<unsigned char>& input, size_t count) {
+  input.erase(input.begin(), input.begin() + count);
+}
+
+std::vector<unsigned char> GetTargetCiphertextBlock(const std::vector<unsigned char>& test_input, unsigned int max_output_len) {
+  auto target_output = TheC14Oracle(test_input);
+  if (target_output.size() > max_output_len) target_output.resize(max_output_len);
+  return target_output;
+}
+
+void BreakTheC14Oracle(size_t random_text_len) {
+  printf("\n============= BREAKING ECB ================\n");
+  std::vector<unsigned char> reconstructed_plaintext;
+
+  auto initial_padding = std::vector<unsigned char>(random_text_len, 'P');
+
+  unsigned int block_count = 1;
+  bool remaining_characters = true;
+  while (remaining_characters) {
+    unsigned int dummy_bytes_count = kBlockSize * block_count - reconstructed_plaintext.size() - 1;
+    
+    auto dummy_buffer = std::vector<unsigned char>(dummy_bytes_count, 'A');
+    auto target_output = GetTargetCiphertextBlock(dummy_buffer, kBlockSize * block_count);
+    RemoveFirstBytes(target_output, kBlockSize);
+
+    dummy_buffer.insert(dummy_buffer.begin(), initial_padding.begin(), initial_padding.end());
+    dummy_buffer.insert(dummy_buffer.end(), reconstructed_plaintext.begin(), reconstructed_plaintext.end());
+    dummy_buffer.push_back('?'); // guess token (this character will be replaced)
+
+    // Brute force
+    unsigned int character;
+    for (character = 0x00; character <= 0xFF; character++) {
+      unsigned char c = static_cast<unsigned char>(character);
+      //printf("[%c = 0x%02X]\n", c, c);
+      dummy_buffer.at(dummy_buffer.size() - 1) = c; // replace the last character
+      auto ciphertext = TheC14Oracle(dummy_buffer);
+      RemoveFirstBytes(ciphertext, kBlockSize);
+
+      // discard all but the first bytes
+      if (ciphertext.size() > block_count * kBlockSize) ciphertext.resize(block_count * kBlockSize);
+
+      // if we find a ciphertext that matches our input
+      if (ciphertext == target_output) {
+        reconstructed_plaintext.push_back(c);
+        break;
+      }
+    }
+
+    if (character > 0xFF) {
+      remaining_characters = false;
+      printf("[!] Failed to find an ASCII character. Message end\n");
+    }
+
+    if (dummy_bytes_count == 0) block_count++;
+    //PrintHexBuffer(reconstructed_plaintext, "PLAINTEXT SO FAR:");
+  }
+
+  PrintHexBuffer(reconstructed_plaintext, "FINAL PLAINTEXT");
+}
+
 void RunChallenge() {
   printf("\n----------\nEX14: Byte-at-a-time ECB decryption (Harder)\n");
   printf("Random text length: %lu\n", InitRandomText());
@@ -96,7 +156,7 @@ void RunChallenge() {
   auto size = GuessRandomTextSize();
   printf("Guessed size: %lu\n", size);
 
-  
+  BreakTheC14Oracle(size);
 }
 
 }

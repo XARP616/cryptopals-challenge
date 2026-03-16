@@ -69,21 +69,22 @@ void BreakECB(unsigned int block_size) {
   unsigned int block_count = 1;
   bool remaining_characters = true;
   while (remaining_characters) {
-    unsigned int dummy_bytes = block_size * block_count - reconstructed_plaintext.size() - 1;
+    unsigned int dummy_byte_count = block_size * block_count - reconstructed_plaintext.size() - 1;
     
-    auto crafted_input = std::vector<unsigned char>(dummy_bytes, 'A');
-    auto target_output = GetTargetCiphertextBlock(crafted_input, block_size * block_count);
+    // Improvement: work only with the last block
+    auto dummy_buffer = std::vector<unsigned char>(dummy_byte_count, 'A');
+    auto target_output = GetTargetCiphertextBlock(dummy_buffer, block_size * block_count);
 
-    crafted_input.insert(crafted_input.end(), reconstructed_plaintext.begin(), reconstructed_plaintext.end());
-    crafted_input.push_back('?'); // guess token (this character will be replaced)
+    dummy_buffer.insert(dummy_buffer.end(), reconstructed_plaintext.begin(), reconstructed_plaintext.end());
+    dummy_buffer.push_back('?'); // guess token (this character will be replaced)
 
     // Brute force
     unsigned int character;
     for (character = 0x00; character <= 0xFF; character++) {
       unsigned char c = static_cast<unsigned char>(character);
       //printf("[%c = 0x%02X]\n", c, c);
-      crafted_input.at(crafted_input.size() - 1) = c; // replace the last character
-      auto ciphertext = TheNewEncryptionOracle(crafted_input);
+      dummy_buffer.at(dummy_buffer.size() - 1) = c; // replace the last character
+      auto ciphertext = TheNewEncryptionOracle(dummy_buffer);
 
       // discard all but the first bytes
       if (ciphertext.size() > block_count * block_size) ciphertext.resize(block_count * block_size);
@@ -100,7 +101,7 @@ void BreakECB(unsigned int block_size) {
       printf("[!] Failed to find an ASCII character. Message end\n");
     }
 
-    if (dummy_bytes == 0) block_count++;
+    if (dummy_byte_count == 0) block_count++;
     //PrintHexBuffer(reconstructed_plaintext, "PLAINTEXT SO FAR:");
   }
 
