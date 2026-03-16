@@ -3,6 +3,7 @@
 #include "challenge7.h"
 #include "challenge9.h"
 #include "challenge10.h"
+#include "challenge15.h"
 
 namespace challenge10 {
 
@@ -60,6 +61,7 @@ std::vector<unsigned char> CBCDecrypt(
   XorBuffer(cbc_plaintext.data(), iv.data(), kBlockSizeBytes);
 
   // TODO: remove the padding
+  if (!challenge15::StripPadding(cbc_plaintext)) printf("[x] Not valid padding");
 
   return cbc_plaintext;
 }

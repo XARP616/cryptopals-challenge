@@ -4,6 +4,9 @@
 #include "utils.h"
 #include "challenge9.h"
 #include "challenge10.h"
+#include "challenge15.h"
+
+const unsigned int kBlockSize = 16;
 
 // EX9
 TEST(Set2, PKCS7Padding) {
@@ -48,4 +51,31 @@ TEST(Set2, AESCBCMode) {
   EXPECT_EQ(text.length(), decrypted_str.length()); // Going to fail until padding gets removed
 
   // TODO: test for a single block? (with the padding may not make sense)
+}
+
+// EX15
+TEST(Set2, PKCS7_validation) {
+  std::string in1 = "ICE ICE BABY\x04\x04\x04\x04";
+  std::string in2 = "ICE ICE BABY\x05\x05\x05\x05";
+  std::string in3 = "ICE ICE BABYYYYY";
+
+  std::vector<unsigned char> buf1 = {in1.begin(), in1.end()};
+  std::vector<unsigned char> buf2 = {in2.begin(), in2.end()};
+  std::vector<unsigned char> buf3 = {in3.begin(), in3.end()};
+  auto buf4 = buf3;
+  
+  buf3.insert(buf3.end(), kBlockSize, '\x00');
+  buf4.insert(buf4.begin(), kBlockSize, '\x00'); // last_char = 0x59
+
+  // valid padding
+  EXPECT_TRUE(challenge15::StripPadding(buf1));
+  
+  // invalid count of padding
+  EXPECT_FALSE(challenge15::StripPadding(buf2));
+
+  // valid 0x0 (16 bytes) padding
+  EXPECT_TRUE(challenge15::StripPadding(buf3));
+
+  // invalid last char
+  EXPECT_FALSE(challenge15::StripPadding(buf4));
 }

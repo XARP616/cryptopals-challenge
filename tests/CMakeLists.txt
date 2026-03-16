@@ -19,6 +19,7 @@ add_executable(
   ${SET2_SRC_DIR}/challenge9.cc
   ${SET2_SRC_DIR}/challenge10.cc
   ${SET2_SRC_DIR}/challenge11.cc
+  ${SET2_SRC_DIR}/challenge15.cc
 )
 
 target_link_libraries(
