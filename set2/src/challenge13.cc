@@ -11,6 +11,7 @@
 namespace challenge13 {
 
 std::vector<unsigned char> session_key;
+const unsigned int kBlockSize = 16;
 
 class Field {
  public:
@@ -101,8 +102,19 @@ void PrintAsBlocks(std::string input, unsigned int block_size) {
     if (i % block_size == 0) {
       if (i == 0) printf("[");
       else printf("] [");
-    } printf("%c", input[i]);
+    }
+    
+    unsigned char c = input[i];
+    if (c < 0x20 || c > 0x7E) c = '.';
+    printf("%c", c);
+
   } printf("]\n");
+}
+
+void PrintUserInfo(User u) {
+  auto str = u.Encode();
+  PrintAsBlocks(str, kBlockSize);
+  PrintHexBuffer({str.begin(), str.end()});
 }
 
 void RunChallenge() {
@@ -120,7 +132,7 @@ void RunChallenge() {
   //  =>
   // [email=mymail@ser] [vice.com&uid=10&] [role=admin]
 
-  // CÓMO GENERAMOS UN BLOQUE QUE DIGA role=admin?
+  // GENERATE A BLOCK THAT CONTAINS role=admin?
   // [email=me@service] [.com&uid=10&role] [=admin #padding]
   // [email=mymail@ser] [admin&uid=10&rol] [e=user]
   //                     ^ interesting block with clutter
@@ -128,37 +140,36 @@ void RunChallenge() {
   // [email=lav@gmail.] [com&uid=10&role=] [user#padding]
   //                                         ^ replacable
 
-  unsigned int block_size = 16;
-  User user = ProfileFor("mymail@seradmin");
-  PrintAsBlocks(user.Encode(), block_size);
-  auto str = user.Encode();
-  PrintHexBuffer({str.begin(), str.end()}, "USER BEFORE");
-  auto ciphered = CipherProfile(user); // keep the second block
-  auto admin_block_pos = ciphered.data() + block_size;
-  PrintHexBuffer(ciphered, "USER CIPHERED");
+  // [email=lav@gmail.] [com&uid=10&role=] [admin&uid=10&rol]
+  //                                         ^ replaced (padding?)
+  
+  // THE PADDING (PKCS7)
+  // [admin&uid=10&rol]
+  // admin (5) + padding (11) -> 0x0B
+
+  std::string magic_user = "mymail@seradmin";
+  auto padding = std::vector<unsigned char>(11, 11);
+  magic_user.insert(magic_user.end(), padding.begin(), padding.end());
+  
+  User user = ProfileFor(magic_user);
+  PrintUserInfo(user);
+  
+  // GET THE SECOND BLOCK
+  auto ciphered = CipherProfile(user);
+  auto admin_block = ciphered.data() + kBlockSize;
 
   User admin = ProfileFor("lav@gmail.com");
-  PrintAsBlocks(admin.Encode(), block_size);
-
-  // TEST
-  {
-    std::string s = "admin&uid=10&rol";
-    auto c = challenge7::EncryptAesEcb({s.begin(), s.end()}, session_key, false);
-    PrintHexBuffer(c, "OU YES TONIGHT");
-    getchar();
-  }
+  PrintUserInfo(admin);
 
   auto c_admin = CipherProfile(admin);
-  str = admin.Encode();
-  PrintHexBuffer({str.begin(), str.end()}, "C-ADMIN BEFORE");
-  PrintHexBuffer(c_admin, "C-ADMIN ENC");
+  PrintHexBuffer(c_admin, "ADMIN ENC");
 
-  auto replace_at = c_admin.data() + block_size * 2; // third block
-  memcpy(replace_at, admin_block_pos, block_size);
-  PrintHexBuffer(c_admin, "C-ADMIN AFTER");
+  auto replace_at = c_admin.data() + kBlockSize * 2; // third block
+  memcpy(replace_at, admin_block, kBlockSize);
+  PrintHexBuffer(c_admin, "ADMIN REPLACED");
+
+  printf("DECODED PROFILE:\n");
   DecipherProfile(c_admin);
-
-  // DecipherProfile(ciphered);
 
   // ParseFields("foo=bar&baz=qux&zap=zazzle"); // test parsing
 }
