@@ -98,7 +98,7 @@ void BreakECB(unsigned int block_size) {
 
     if (character > 0xFF) {
       remaining_characters = false;
-      printf("[!] Failed to find an ASCII character. Message end\n");
+      printf("[!] Failed to find an ASCII character. Message end.\n");
     }
 
     if (dummy_byte_count == 0) block_count++;

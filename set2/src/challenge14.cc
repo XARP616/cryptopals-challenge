@@ -9,7 +9,7 @@
 
 namespace challenge14 {
 
-const size_t kRandomTextMinLen = 1;
+const size_t kRandomTextMinLen = 0;
 const size_t kRandomTextMaxLen = 100;
 const unsigned char kBlockSize = 16;
 std::vector<unsigned char> random_text;
@@ -92,8 +92,9 @@ void RemoveFirstBytes(std::vector<unsigned char>& input, size_t count) {
   input.erase(input.begin(), input.begin() + count);
 }
 
-std::vector<unsigned char> GetTargetCiphertextBlock(const std::vector<unsigned char>& test_input, unsigned int max_output_len) {
+std::vector<unsigned char> GetTargetCiphertextBlock(const std::vector<unsigned char>& test_input, unsigned int max_output_len, size_t remove_trailing) {
   auto target_output = TheC14Oracle(test_input);
+  RemoveFirstBytes(target_output, remove_trailing);
   if (target_output.size() > max_output_len) target_output.resize(max_output_len);
   return target_output;
 }
@@ -102,7 +103,11 @@ void BreakTheC14Oracle(size_t random_text_len) {
   printf("\n============= BREAKING ECB ================\n");
   std::vector<unsigned char> reconstructed_plaintext;
 
-  auto initial_padding = std::vector<unsigned char>(random_text_len, 'P');
+  auto initial_padding = std::vector<unsigned char>(kBlockSize - (random_text_len % kBlockSize), 'P');
+  size_t padding_block_count = random_text_len / kBlockSize + 1;
+  size_t initial_padding_size = padding_block_count * kBlockSize;
+  printf("Padding block count: %lu\n", padding_block_count);
+  PrintHexBuffer(initial_padding, "PADDING");
 
   unsigned int block_count = 1;
   bool remaining_characters = true;
@@ -110,10 +115,10 @@ void BreakTheC14Oracle(size_t random_text_len) {
     unsigned int dummy_bytes_count = kBlockSize * block_count - reconstructed_plaintext.size() - 1;
     
     auto dummy_buffer = std::vector<unsigned char>(dummy_bytes_count, 'A');
-    auto target_output = GetTargetCiphertextBlock(dummy_buffer, kBlockSize * block_count);
-    RemoveFirstBytes(target_output, kBlockSize);
-
     dummy_buffer.insert(dummy_buffer.begin(), initial_padding.begin(), initial_padding.end());
+
+    auto target_output = GetTargetCiphertextBlock(dummy_buffer, kBlockSize * block_count, initial_padding_size);
+    
     dummy_buffer.insert(dummy_buffer.end(), reconstructed_plaintext.begin(), reconstructed_plaintext.end());
     dummy_buffer.push_back('?'); // guess token (this character will be replaced)
 
@@ -124,7 +129,7 @@ void BreakTheC14Oracle(size_t random_text_len) {
       //printf("[%c = 0x%02X]\n", c, c);
       dummy_buffer.at(dummy_buffer.size() - 1) = c; // replace the last character
       auto ciphertext = TheC14Oracle(dummy_buffer);
-      RemoveFirstBytes(ciphertext, kBlockSize);
+      RemoveFirstBytes(ciphertext, initial_padding_size);
 
       // discard all but the first bytes
       if (ciphertext.size() > block_count * kBlockSize) ciphertext.resize(block_count * kBlockSize);
@@ -138,7 +143,7 @@ void BreakTheC14Oracle(size_t random_text_len) {
 
     if (character > 0xFF) {
       remaining_characters = false;
-      printf("[!] Failed to find an ASCII character. Message end\n");
+      printf("[!] Failed to find an ASCII character. Message end.\n");
     }
 
     if (dummy_bytes_count == 0) block_count++;
