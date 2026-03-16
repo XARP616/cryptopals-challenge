@@ -8,6 +8,7 @@ add_executable(set2
   ${SET2_SRC_DIR}/challenge11.cc
   ${SET2_SRC_DIR}/challenge12.cc
   ${SET2_SRC_DIR}/challenge13.cc
+  ${SET2_SRC_DIR}/challenge14.cc
   ${SET2_SRC_DIR}/challenge15.cc
   ${SET2_SRC_DIR}/main.cc
 )

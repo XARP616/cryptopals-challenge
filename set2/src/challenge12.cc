@@ -7,13 +7,20 @@
 
 namespace challenge12 {
 
-std::vector<unsigned char> key;
+std::vector<unsigned char> session_key;
+
+void InitKey() {
+  session_key = challenge11::RandomAESKey();
+  //PrintHexBuffer(session_key, "SESSION KEY\n");
+}
 
 std::vector<unsigned char> TheNewEncryptionOracle(std::vector<unsigned char> plaintext) {
-  std::string prepend = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK";
-  auto decoded = challenge1::Base64Decode(prepend);
+  std::string append = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK";
+  auto decoded = challenge1::Base64Decode(append);
   plaintext.insert(plaintext.end(), decoded.begin(), decoded.end());
-  return challenge7::EncryptAesEcb(plaintext, key);
+
+  if (session_key.size() == 0) InitKey();
+  return challenge7::EncryptAesEcb(plaintext, session_key);
 }
 
 // Guesses the block size by evaluating how often the ciphertext length changes
@@ -102,8 +109,6 @@ void BreakECB(unsigned int block_size) {
 
 void RunChallenge() {
   printf("\n----------\nEX12: Byte-at-a-time ECB decryption (Simple)\n");
-  key = challenge11::RandomAESKey();
-  PrintHexBuffer(key, "SESSION KEY\n");
 
   printf("Checking for ECB\n");
   auto block_size = GuessBlockSize();
@@ -111,8 +116,6 @@ void RunChallenge() {
   else printf("The New Oracle is not using ECB\n");
 
   BreakECB(block_size);
-  
-  
 }
 
 } // namespace challenge12

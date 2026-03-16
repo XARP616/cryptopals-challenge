@@ -38,7 +38,7 @@ bool IsCiphertextEcb(const std::vector<unsigned char>& input) {
 void AddRandomBytes(std::vector<unsigned char>& plaintext) {
   std::vector<unsigned char> padding_before;
   std::vector<unsigned char> padding_after;
-    
+  
   for (unsigned int i = 0; i < rand() % 6 + 5; i++) padding_before.push_back(rand());
   for (unsigned int i = 0; i < rand() % 6 + 5; i++) padding_after.push_back(rand());
   plaintext.insert(plaintext.begin(), padding_before.begin(), padding_before.end());
