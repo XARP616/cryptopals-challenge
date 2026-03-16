@@ -12,24 +12,20 @@ const unsigned int kBlockSize = 16;
 // If the padding is invalid, the number returned will be
 // equal to the input size.
 size_t ValidatePadding(const std::vector<unsigned char>& input) {
-  if (input.size() % kBlockSize != 0) return input.size();
+  if (input.size() % kBlockSize != 0 || input.size() == 0) return input.size();
   
-  unsigned char count;
-  char last_char = input[input.size() - 1];
-  if (last_char == 0) count = static_cast<unsigned char>(kBlockSize);
-  else count = last_char;
+  char last_char = input.back();
 
-  if (last_char >= kBlockSize || count >= input.size()) return input.size(); // invalid last character
+  if (last_char == 0; last_char > kBlockSize || last_char > input.size()) return input.size();
   
-  auto padding_start = input.size() - count;
+  auto padding_start = input.size() - last_char;
 
   bool valid = true;
   for (unsigned int i = padding_start; i < input.size(); i++) {
-    if (input.at(i) != last_char) valid = false;
+    if (input[i] != last_char) return input.size();
   }
 
-  if (!valid) count = 0;
-  return input.size() - count; 
+  return input.size() - last_char;
 }
 
 bool StripPadding(std::vector<unsigned char>& input) {
