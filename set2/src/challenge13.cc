@@ -2,6 +2,7 @@
 #include <ranges>
 #include <format>
 #include <vector>
+#include "utils.h"
 #include "challenge1.h"
 #include "challenge7.h"
 #include "challenge11.h"
@@ -95,14 +96,20 @@ void DecipherProfile(std::vector<unsigned char> user) {
   ParseFields(encoded_user);
 }
 
+void PrintAsBlocks(std::string input, unsigned int block_size) {
+  for (unsigned int i = 0; i < input.size(); i++) {
+    if (i % block_size == 0) {
+      if (i == 0) printf("[");
+      else printf("] [");
+    } printf("%c", input[i]);
+  } printf("]\n");
+}
+
 void RunChallenge() {
   printf("\n----------\nEX13: ECB cut-and-paste\n");
   session_key = challenge11::RandomAESKey();
 
-  User user = ProfileFor("labascal@unizar.es");
-
-  auto ciphered = CipherProfile(user);
-  DecipherProfile(ciphered);
+  //User user = ProfileFor("labascal@unizar.es");
 
   // NO hay una comprobación de integridad de los bloques
   // por tanto, igual se podría probar a introducir un bloque con los datos
@@ -114,6 +121,44 @@ void RunChallenge() {
   // [email=mymail@ser] [vice.com&uid=10&] [role=admin]
 
   // CÓMO GENERAMOS UN BLOQUE QUE DIGA role=admin?
+  // [email=me@service] [.com&uid=10&role] [=admin #padding]
+  // [email=mymail@ser] [admin&uid=10&rol] [e=user]
+  //                     ^ interesting block with clutter
+
+  // [email=lav@gmail.] [com&uid=10&role=] [user#padding]
+  //                                         ^ replacable
+
+  unsigned int block_size = 16;
+  User user = ProfileFor("mymail@seradmin");
+  PrintAsBlocks(user.Encode(), block_size);
+  auto str = user.Encode();
+  PrintHexBuffer({str.begin(), str.end()}, "USER BEFORE");
+  auto ciphered = CipherProfile(user); // keep the second block
+  auto admin_block_pos = ciphered.data() + block_size;
+  PrintHexBuffer(ciphered, "USER CIPHERED");
+
+  User admin = ProfileFor("lav@gmail.com");
+  PrintAsBlocks(admin.Encode(), block_size);
+
+  // TEST
+  {
+    std::string s = "admin&uid=10&rol";
+    auto c = challenge7::EncryptAesEcb({s.begin(), s.end()}, session_key, false);
+    PrintHexBuffer(c, "OU YES TONIGHT");
+    getchar();
+  }
+
+  auto c_admin = CipherProfile(admin);
+  str = admin.Encode();
+  PrintHexBuffer({str.begin(), str.end()}, "C-ADMIN BEFORE");
+  PrintHexBuffer(c_admin, "C-ADMIN ENC");
+
+  auto replace_at = c_admin.data() + block_size * 2; // third block
+  memcpy(replace_at, admin_block_pos, block_size);
+  PrintHexBuffer(c_admin, "C-ADMIN AFTER");
+  DecipherProfile(c_admin);
+
+  // DecipherProfile(ciphered);
 
   // ParseFields("foo=bar&baz=qux&zap=zazzle"); // test parsing
 }

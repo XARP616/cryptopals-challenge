@@ -106,7 +106,7 @@ std::vector<unsigned char> EncryptAesEcb(const std::vector<unsigned char>& plain
   return ciphertext;
 }
 
-std::vector<unsigned char> DecryptAesEcb(const std::vector<unsigned char>& ciphertext, const std::vector<unsigned char> key) {
+std::vector<unsigned char> DecryptAesEcb(const std::vector<unsigned char>& ciphertext, const std::vector<unsigned char> key, bool padding_enabled) {
   std::vector<unsigned char> plaintext(ciphertext.size());
   int ciphertext_len = ciphertext.size();
   int new_plaintext_len, processed_bytes;
@@ -123,7 +123,7 @@ std::vector<unsigned char> DecryptAesEcb(const std::vector<unsigned char>& ciphe
     return {};
   }
 
-  //EVP_CIPHER_CTX_set_padding(ctx, 0);
+  if (!padding_enabled) EVP_CIPHER_CTX_set_padding(ctx, 0);
 
   if (EVP_DecryptUpdate(ctx, plaintext.data(), &processed_bytes, ciphertext.data(), ciphertext_len) != 1) {
     printf("[x] Failed to decrypt data\n");
@@ -135,7 +135,7 @@ std::vector<unsigned char> DecryptAesEcb(const std::vector<unsigned char>& ciphe
   if (EVP_DecryptFinal_ex(ctx, plaintext.data() + processed_bytes, &processed_bytes) != 1) {
     printf("[x] Failed to decrypt the final bytes\n");
     EVP_CIPHER_CTX_free(ctx);
-    return {};
+    return plaintext;
   }
   new_plaintext_len += processed_bytes;
 
