@@ -11,6 +11,7 @@ const unsigned int kBlockSize = 16;
 // Returns how many bytes of padding contains the input.
 // If the padding is invalid, the number returned will be
 // equal to the input size.
+// https://www.ibm.com/docs/en/zos/2.1.0?topic=rules-pkcs-padding-method
 size_t ValidatePadding(const std::vector<unsigned char>& input) {
   if (input.size() % kBlockSize != 0 || input.size() == 0) return input.size();
   

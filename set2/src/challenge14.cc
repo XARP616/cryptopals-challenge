@@ -9,21 +9,30 @@
 
 namespace challenge14 {
 
-const size_t kRandomTextMinLen = 0;
+const size_t kRandomTextMinLen = 1;
 const size_t kRandomTextMaxLen = 100;
 const unsigned char kBlockSize = 16;
 std::vector<unsigned char> random_text;
 
-size_t InitRandomText() {
-  unsigned int random_text_len = rand() % kRandomTextMaxLen + kRandomTextMinLen;
-  random_text.resize(random_text_len);
+bool RegenerateRandomText(size_t size) {
+  random_text.resize(size);
   int res = RAND_bytes(random_text.data(), random_text.size());
   if (res != 1) {
+    random_text.resize(0);
     printf("[x] Error generating random text\n");
-    return 0;
   }
 
-  return random_text_len;
+  return random_text.size();
+}
+
+size_t InitRandomText(size_t text_len) {
+  if (random_text.size()!= 0) return random_text.size();
+
+  size_t random_text_len = rand() % kRandomTextMaxLen + kRandomTextMinLen;
+  if (text_len == -1) RegenerateRandomText(random_text_len);
+  else RegenerateRandomText(text_len);
+
+  return random_text.size();
 }
 
 std::vector<unsigned char> TheC14Oracle(const std::vector<unsigned char>& input) {
@@ -69,7 +78,7 @@ size_t GuessRandomTextSize() {
   //  [R2 A6] [A8]         ...
   auto initial_blocks = GuessTheInitialBlocks();
   auto min_size = initial_blocks * kBlockSize;
-  printf("%lu trailing blocks (min size: %lu bytes)\n", initial_blocks, initial_blocks * kBlockSize);
+  //printf("%lu trailing blocks (min size: %lu bytes)\n", initial_blocks, initial_blocks * kBlockSize);
 
   std::vector<unsigned char> prev_block;
   for (size_t i = 0; i <= kBlockSize; i++) {

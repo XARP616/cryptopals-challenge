@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "challenge9.h"
 #include "challenge10.h"
+#include "challenge14.h"
 #include "challenge15.h"
 
 const unsigned int kBlockSize = 16;
@@ -53,6 +54,47 @@ TEST(Set2, AESCBCMode) {
   // TODO: test for a single block? (with the padding may not make sense)
 }
 
+// EX14
+TEST(Set2, TextSizeGuessing) {
+  size_t test_value = 1;
+  auto actual_size = challenge14::InitRandomText();
+
+  actual_size = challenge14::RegenerateRandomText(test_value);
+
+  auto guessed_size = challenge14::GuessRandomTextSize();
+  EXPECT_EQ(actual_size, guessed_size);
+
+  test_value = 15;
+  actual_size = challenge14::RegenerateRandomText(test_value);
+  guessed_size = challenge14::GuessRandomTextSize();
+  EXPECT_EQ(test_value, guessed_size);
+
+  test_value = 16;
+  actual_size = challenge14::RegenerateRandomText(test_value);
+  guessed_size = challenge14::GuessRandomTextSize();
+  EXPECT_EQ(test_value, guessed_size);
+
+  test_value = 17;
+  actual_size = challenge14::RegenerateRandomText(test_value);
+  guessed_size = challenge14::GuessRandomTextSize();
+  EXPECT_EQ(test_value, guessed_size);
+
+  test_value = 31;
+  actual_size = challenge14::RegenerateRandomText(test_value);
+  guessed_size = challenge14::GuessRandomTextSize();
+  EXPECT_EQ(test_value, guessed_size);
+
+  test_value = 32;
+  actual_size = challenge14::RegenerateRandomText(test_value);
+  guessed_size = challenge14::GuessRandomTextSize();
+  EXPECT_EQ(test_value, guessed_size);
+
+  test_value = 100;
+  actual_size = challenge14::RegenerateRandomText(test_value);
+  guessed_size = challenge14::GuessRandomTextSize();
+  EXPECT_EQ(test_value, guessed_size);
+}
+
 // EX15
 TEST(Set2, PKCS7_validation) {
   std::string in1 = "ICE ICE BABY\x04\x04\x04\x04";
@@ -64,8 +106,8 @@ TEST(Set2, PKCS7_validation) {
   std::vector<unsigned char> buf3 = {in3.begin(), in3.end()};
   auto buf4 = buf3;
   
-  buf3.insert(buf3.end(), kBlockSize, '\x00');
-  buf4.insert(buf4.begin(), kBlockSize, '\x00'); // last_char = 0x59
+  buf3.insert(buf3.end(), kBlockSize, '\x10');
+  buf4.insert(buf4.begin(), kBlockSize, '\x10'); // last_char = 0x59
 
   // valid padding
   EXPECT_TRUE(challenge15::StripPadding(buf1));
@@ -73,8 +115,9 @@ TEST(Set2, PKCS7_validation) {
   // invalid count of padding
   EXPECT_FALSE(challenge15::StripPadding(buf2));
 
-  // valid 0x0 (16 bytes) padding
-  EXPECT_TRUE(challenge15::StripPadding(buf3));
+  // valid 0x10 (16 bytes) padding
+  bool res = challenge15::StripPadding(buf3);
+  EXPECT_TRUE(res);
 
   // invalid last char
   EXPECT_FALSE(challenge15::StripPadding(buf4));

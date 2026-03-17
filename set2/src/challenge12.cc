@@ -7,19 +7,13 @@
 
 namespace challenge12 {
 
-std::vector<unsigned char> session_key;
-
-void InitKey() {
-  session_key = challenge11::RandomAESKey();
-  //PrintHexBuffer(session_key, "SESSION KEY\n");
-}
+std::vector<unsigned char> session_key = challenge11::RandomAESKey();;
 
 std::vector<unsigned char> TheNewEncryptionOracle(std::vector<unsigned char> plaintext) {
   std::string append = "Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK";
   auto decoded = challenge1::Base64Decode(append);
   plaintext.insert(plaintext.end(), decoded.begin(), decoded.end());
 
-  if (session_key.size() == 0) InitKey();
   return challenge7::EncryptAesEcb(plaintext, session_key);
 }
 
