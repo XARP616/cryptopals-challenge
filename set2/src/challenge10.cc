@@ -61,7 +61,7 @@ std::vector<unsigned char> CBCDecrypt(
   XorBuffer(cbc_plaintext.data(), iv.data(), kBlockSizeBytes);
 
   // TODO: remove the padding
-  if (!challenge15::StripPadding(cbc_plaintext)) printf("[x] Not valid padding");
+  if (!challenge15::StripPadding(cbc_plaintext)) printf("[x] Not valid padding\n");
 
   return cbc_plaintext;
 }
