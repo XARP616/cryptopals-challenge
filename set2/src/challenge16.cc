@@ -121,6 +121,7 @@ void Scramble() {
 }
 
 void RunChallenge() {
+  printf("\n----------\nEX16: CBC bitflipping attacks\n");
   //POC(); // working!
   Scramble();
   //Testing();
